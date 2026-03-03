@@ -156,7 +156,9 @@
                         mensagem.publico,
                     ]));
 
-                    if (assinatura === lastSignature) {
+                    const possuiAlertsRenderizados = container.querySelector('[data-cad-msg-alert]') !== null;
+
+                    if (assinatura === lastSignature && possuiAlertsRenderizados) {
                         return;
                     }
 
