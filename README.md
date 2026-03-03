@@ -72,6 +72,7 @@ Configure no `.env` da aplicação que usa este tema:
 ```dotenv
 CADASTROS_AUXILIARES_MENSAGENS_INTEGRACAO=false
 CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL=
+CADASTROS_AUXILIARES_SISTEMA_NAME=
 CADASTROS_AUXILIARES_MENSAGENS_LIMITE=5
 CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT=5
 CADASTROS_AUXILIARES_MENSAGENS_REFRESH=30
@@ -82,12 +83,14 @@ Significado:
 - `CADASTROS_AUXILIARES_MENSAGENS_INTEGRACAO`: habilita/desabilita a integração.
 - quando a variável não existir, estiver vazia ou for `false`, a integração fica desabilitada.
 - `CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL`: endpoint `GET` do cadastros-auxiliares (ex.: `https://seu-app/api/mensagens`).
+- `CADASTROS_AUXILIARES_SISTEMA_NAME`: nome do sistema consumidor para aplicar o filtro por sistema (ex.: `cadastros-auxiliares`, `ponto`).
 - `CADASTROS_AUXILIARES_MENSAGENS_LIMITE`: quantidade máxima de mensagens consumidas.
 - `CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT`: tempo em segundos para cada mensagem desaparecer automaticamente.
 - `CADASTROS_AUXILIARES_MENSAGENS_REFRESH`: intervalo (em segundos) para atualizar somente a área de mensagens sem recarregar a página.
 
 Comportamento:
 
+- O filtro por sistema só funciona quando `CADASTROS_AUXILIARES_SISTEMA_NAME` estiver configurada com o nome do sistema USPdev (ex.: `CADASTROS_AUXILIARES_SISTEMA_NAME=ponto` para o sistema `uspdev/ponto`).
 - Se `CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT` estiver vazio ou `0`, as mensagens ficam visíveis até o usuário clicar em fechar.
 - A área de mensagens é atualizada periodicamente sem `F5`, conforme `CADASTROS_AUXILIARES_MENSAGENS_REFRESH`.
 - Cada mensagem exibida possui botão de fechar (`×`).

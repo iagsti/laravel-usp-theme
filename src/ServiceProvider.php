@@ -40,6 +40,7 @@ class ServiceProvider extends BaseServiceProvider
         View::share('cadastrosAuxiliaresMensagensTimeout', $displayTimeout);
         View::share('cadastrosAuxiliaresMensagensEndpoint', $this->resolveMensagensEndpointUrl());
         View::share('cadastrosAuxiliaresMensagensLimite', $this->resolveMensagensLimite());
+        View::share('cadastrosAuxiliaresMensagensSistema', $this->resolveMensagensSistema());
         View::share('cadastrosAuxiliaresMensagensRefresh', $this->resolveMensagensRefresh());
         View::share('cadastrosAuxiliaresMensagens', $this->fetchCadastrosAuxiliaresMensagens());
 
@@ -199,10 +200,10 @@ class ServiceProvider extends BaseServiceProvider
         $value = config('laravel-usp-theme.cadastros_auxiliares_mensagens_sistema');
 
         if ($value === null || $value === '') {
-            $value = env('CADASTROS_AUXILIARES_MENSAGENS_SISTEMA', '');
+            $value = env('CADASTROS_AUXILIARES_SISTEMA_NAME', '');
         }
 
-        return trim((string) $value);
+        return mb_strtolower(trim((string) $value));
     }
 
     private function resolveMensagensRefresh(): int

@@ -58,6 +58,7 @@
 
                 const endpoint = @json($cadastrosAuxiliaresMensagensEndpoint ?? '');
                 const limite = Number(@json($cadastrosAuxiliaresMensagensLimite ?? 5) || 5);
+                const sistema = String(@json($cadastrosAuxiliaresMensagensSistema ?? '') || '').trim();
                 const isAuth = @json(auth()->check());
                 const refreshSeconds = Number(@json($cadastrosAuxiliaresMensagensRefresh ?? 30) || 30);
                 const refreshMs = refreshSeconds * 1000;
@@ -175,8 +176,18 @@
                 }
 
                 const atualizarMensagens = () => {
-                    const separador = endpoint.includes('?') ? '&' : '?';
-                    const url = `${endpoint}${separador}limite=${limite}&_t=${Date.now()}`;
+                    const urlObj = new URL(endpoint, window.location.origin);
+
+                    if (!urlObj.searchParams.has('limite')) {
+                        urlObj.searchParams.set('limite', String(limite));
+                    }
+
+                    if (!urlObj.searchParams.has('sistema') && sistema !== '') {
+                        urlObj.searchParams.set('sistema', sistema);
+                    }
+
+                    urlObj.searchParams.set('_t', String(Date.now()));
+                    const url = urlObj.toString();
 
                     fetch(url, { headers: { Accept: 'application/json' } })
                         .then((response) => (response.ok ? response.json() : []))
