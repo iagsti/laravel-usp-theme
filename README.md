@@ -61,13 +61,46 @@ Este tema foi testado no Laravel 8.x e 11.x mas deve funcionar em outras versõe
 * [Blocos](docs/blocos.md)
 * [Issues](docs/issues.md)
 
+## Integração com cadastros-auxiliares
+
+O tema pode exibir mensagens vindas do sistema
+[uspdev/cadastros-auxiliares](https://github.com/uspdev/cadastros-auxiliares)
+no topo das páginas.
+
+Configure no `.env` da aplicação que usa este tema:
+
+```dotenv
+CADASTROS_AUXILIARES_MENSAGENS_INTEGRACAO=false
+CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL=
+CADASTROS_AUXILIARES_MENSAGENS_LIMITE=5
+CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT=5
+CADASTROS_AUXILIARES_MENSAGENS_REFRESH=30
+```
+
+Significado:
+
+- `CADASTROS_AUXILIARES_MENSAGENS_INTEGRACAO`: habilita/desabilita a integração.
+- quando a variável não existir, estiver vazia ou for `false`, a integração fica desabilitada.
+- `CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL`: endpoint `GET` do cadastros-auxiliares (ex.: `https://seu-app/api/mensagens`).
+- `CADASTROS_AUXILIARES_MENSAGENS_LIMITE`: quantidade máxima de mensagens consumidas.
+- `CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT`: tempo em segundos para cada mensagem desaparecer automaticamente.
+- `CADASTROS_AUXILIARES_MENSAGENS_REFRESH`: intervalo (em segundos) para atualizar somente a área de mensagens sem recarregar a página.
+
+Comportamento:
+
+- Se `CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT` estiver vazio ou `0`, as mensagens ficam visíveis até o usuário clicar em fechar.
+- A área de mensagens é atualizada periodicamente sem `F5`, conforme `CADASTROS_AUXILIARES_MENSAGENS_REFRESH`.
+- Cada mensagem exibida possui botão de fechar (`×`).
+- Em caso de falha no endpoint, o comportamento é silencioso (não quebra a página).
+
 ## Changelog
 
-03/07/2025
-- release 2.8.15
-- adicionado variável $dtSlot ao datatable-simples
-- $dtSlot recebe uma view blade renderizada
-- exibe conteúdo da view na parte superior da tabela, a frente da contagem de registros
+02/03/2026
+- release 2.8.24
+- integração opcional com `uspdev/cadastros-auxiliares` para exibição de mensagens no topo das páginas.
+- suporte às variáveis `CADASTROS_AUXILIARES_MENSAGENS_*`.
+- mensagens com botão de fechar (`×`) e auto-ocultação baseada em `CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT`.
+- comportamento silencioso em falha de consulta ao endpoint.
 
 25/4/2023
 - release 2.8

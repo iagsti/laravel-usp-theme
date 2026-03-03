@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 
-    <head>
-        <meta charset="utf-8">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="icon" href="{{ asset('vendor/laravel-usp-theme/skins/' . strtolower($skin) . '/images/favicon.ico') }}" type="image/x-icon">
+<head>
+    <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="{{ asset('vendor/laravel-usp-theme/skins/' . strtolower($skin) . '/images/favicon.ico') }}" type="image/x-icon">
 
-        <title>@section('title'){{ $title }}@show</title>
+    <title>@section('title'){{ $title }}@show</title>
 
         <base href="{{ $app_url }}/">
 
@@ -44,6 +44,7 @@
                 <div id="content" class="col-md-12">
                 @section('flash')
                     @includewhen(config('laravel-usp-theme.mensagensFlash'),'laravel-usp-theme::partials.content_flash')
+                    @include('laravel-usp-theme::partials.content_cadastros_auxiliares_mensagens')
                 @show
                 @section('content')
                     {{-- Conteúdo principal vai aqui. O include de exemplo deve ser
