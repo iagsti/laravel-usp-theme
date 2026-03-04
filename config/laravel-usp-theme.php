@@ -117,6 +117,7 @@ return [
     'cadastros_auxiliares_mensagens_limite' => (int) env('CADASTROS_AUXILIARES_MENSAGENS_LIMITE', 5),
     'cadastros_auxiliares_mensagens_timeout' => (int) env('CADASTROS_AUXILIARES_MENSAGENS_TIMEOUT', 5),
     'cadastros_auxiliares_mensagens_refresh' => (int) env('CADASTROS_AUXILIARES_MENSAGENS_REFRESH', 30),
+    'cadastros_auxiliares_password' => env('CADASTROS_AUXILIARES_PASSWORD', ''),
 
     # container ou container-fluid
     'container' => 'container-fluid',
