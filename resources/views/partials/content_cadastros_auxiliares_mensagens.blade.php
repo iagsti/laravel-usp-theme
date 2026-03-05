@@ -56,9 +56,7 @@
         const timeoutSeconds = Number(container.dataset.timeout || 0);
         const useAutoDismiss = timeoutSeconds > 0;
 
-                const endpoint = @json($cadastrosAuxiliaresMensagensEndpoint ?? '');
-                const limite = Number(@json($cadastrosAuxiliaresMensagensLimite ?? 5) || 5);
-                const sistema = String(@json($cadastrosAuxiliaresMensagensSistema ?? '') || '').trim();
+                const endpoint = @json(route('usp-theme.cadastros-auxiliares.mensagens-proxy'));
                 const isAuth = @json(auth()->check());
                 const refreshSeconds = Number(@json($cadastrosAuxiliaresMensagensRefresh ?? 30) || 30);
                 const refreshMs = refreshSeconds * 1000;
@@ -179,15 +177,6 @@
 
                 const atualizarMensagens = () => {
                     const urlObj = new URL(endpoint, window.location.origin);
-
-                    if (!urlObj.searchParams.has('limite')) {
-                        urlObj.searchParams.set('limite', String(limite));
-                    }
-
-                    if (!urlObj.searchParams.has('sistema') && sistema !== '') {
-                        urlObj.searchParams.set('sistema', sistema);
-                    }
-
                     urlObj.searchParams.set('_t', String(Date.now()));
                     const url = urlObj.toString();
 

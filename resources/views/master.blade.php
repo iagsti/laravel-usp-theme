@@ -44,8 +44,8 @@
                 <div id="content" class="col-md-12">
                 @section('flash')
                     @includewhen(config('laravel-usp-theme.mensagensFlash'),'laravel-usp-theme::partials.content_flash')
-                    @include('laravel-usp-theme::partials.content_cadastros_auxiliares_mensagens')
                 @show
+                @include('laravel-usp-theme::partials.content_cadastros_auxiliares_mensagens')
                 @section('content')
                     {{-- Conteúdo principal vai aqui. O include de exemplo deve ser
                 substituído pelo conteúdo da aplicação não usando o @parent --}}

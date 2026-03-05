@@ -20,6 +20,7 @@ class ServiceProvider extends BaseServiceProvider
     {
         $this->loadViews();
         $this->loadTranslations();
+        $this->loadRoutes();
         $this->publishAssets();
         $this->publishConfig();
 
@@ -65,6 +66,7 @@ class ServiceProvider extends BaseServiceProvider
     public function register()
     {
         // configs
+        $this->mergeConfigFrom($this->packagePath('config/laravel-usp-theme.php'), 'laravel-usp-theme');
         $this->mergeConfigFrom($this->packagePath('config/skins.php'), 'laravel-usp-theme');
         $sistemas = require $this->packagePath('config/laravel-usp-theme-sistemas.php');
         $config = $this->app['config']->get('laravel-usp-theme', []);
@@ -104,6 +106,11 @@ class ServiceProvider extends BaseServiceProvider
         $this->publishes([
             $this->packagePath('resources/assets') => public_path('vendor/laravel-usp-theme'),
         ], 'assets');
+    }
+
+    private function loadRoutes()
+    {
+        $this->loadRoutesFrom($this->packagePath('routes/web.php'));
     }
 
     private function publishConfig()
