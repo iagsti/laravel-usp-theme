@@ -1,200 +1,149 @@
-@if (($cadastrosAuxiliaresMensagensIntegracao ?? false))
-    <div class="flash-message" data-cad-msg-container data-timeout="{{ (int) $cadastrosAuxiliaresMensagensTimeout }}">
-        @foreach ($cadastrosAuxiliaresMensagens as $mensagem)
-            @php
-                $ativo = $mensagem['ativo'] ?? true;
-                $publico = $mensagem['publico'] ?? null;
-                $deveExibir = $ativo !== false;
+<div class="flash-message" data-cad-msg-container data-timeout="{{ (int) config('laravel-usp-theme.cadastros_auxiliares_mensagens_timeout', 5) }}">
+</div>
 
-                if ($deveExibir && is_bool($publico)) {
-                    $deveExibir = $publico ? true : auth()->check();
-                } elseif ($deveExibir && !empty($publico)) {
-                    $publicos = is_array($publico)
-                        ? $publico
-                        : array_map('trim', explode(',', (string) $publico));
+<script>
+  (function () {
+    const container = document.querySelector('[data-cad-msg-container]');
+    if (!container) return;
 
-                    $publicosNormalizados = collect($publicos)
-                        ->map(function ($item) {
-                            $texto = mb_strtolower(trim((string) $item));
-                            return str_replace('á', 'a', $texto);
-                        })
-                        ->filter()
-                        ->values();
+    const timeoutSeconds = Number(container.dataset.timeout || 0);
+    const useAutoDismiss = timeoutSeconds > 0;
 
-                    if ($publicosNormalizados->contains('usuario')) {
-                        $deveExibir = auth()->check();
-                    }
-                }
+    const endpoint = @json(route('usp-theme.cadastros-auxiliares.mensagens-proxy'));
+    const isAuth = @json(auth()->check());
+    const refreshSeconds = Number(@json(config('laravel-usp-theme.cadastros_auxiliares_mensagens_refresh', 30)) || 30);
+    const refreshMs = refreshSeconds * 1000;
+    const timeoutMs = timeoutSeconds * 1000;
 
-                $classe = match($mensagem['tipo'] ?? 'info') {
-                    'erro' => 'danger',
-                    'aviso' => 'warning',
-                    'sucesso' => 'success',
-                    default => 'info',
-                };
-            @endphp
+    let lastSignature = '';
 
-            @if ($deveExibir)
-                <div class="alert alert-{{ $classe }} alert-dismissible" data-cad-msg-alert>
-                    @if (!empty($mensagem['titulo']))
-                        <strong>{{ $mensagem['titulo'] }}</strong><br>
-                    @endif
-                    {{ $mensagem['conteudo'] ?? '' }}
-                    <button type="button" class="close" aria-label="Fechar" onclick="this.closest('[data-cad-msg-alert]').remove();">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            @endif
-        @endforeach
-    </div>
+    const removeLater = (alert) => {
+      if (!useAutoDismiss) {
+        return;
+      }
 
-    <script>
-      (function () {
-        const container = document.querySelector('[data-cad-msg-container]');
-        if (!container) return;
+      setTimeout(() => {
+        alert.remove();
+      }, timeoutMs);
+    };
 
-        const timeoutSeconds = Number(container.dataset.timeout || 0);
-        const useAutoDismiss = timeoutSeconds > 0;
+    const deveExibirMensagem = (mensagem) => {
+      if (mensagem.ativo === false) {
+        return false;
+      }
 
-                const endpoint = @json(route('usp-theme.cadastros-auxiliares.mensagens-proxy'));
-                const isAuth = @json(auth()->check());
-                const refreshSeconds = Number(@json($cadastrosAuxiliaresMensagensRefresh ?? 30) || 30);
-                const refreshMs = refreshSeconds * 1000;
-                const timeoutMs = timeoutSeconds * 1000;
+      const publico = mensagem.publico;
 
-                let lastSignature = '';
+      if (publico === false) {
+        return isAuth;
+      }
 
-                const removeLater = (alert) => {
-                    if (!useAutoDismiss) {
-                        return;
-                    }
+      if (Array.isArray(publico)) {
+        const normalizados = publico
+          .map((item) => String(item || '').trim().toLowerCase().replace('á', 'a'))
+          .filter(Boolean);
 
-                    setTimeout(() => {
-                        alert.remove();
-                    }, timeoutMs);
-                };
+        if (normalizados.includes('usuario')) {
+          return isAuth;
+        }
+      }
 
-                const deveExibirMensagem = (mensagem) => {
-                    if (mensagem.ativo === false) {
-                        return false;
-                    }
+      if (typeof publico === 'string' && publico.trim() !== '') {
+        const normalizados = publico
+          .split(',')
+          .map((item) => String(item || '').trim().toLowerCase().replace('á', 'a'))
+          .filter(Boolean);
 
-                    const publico = mensagem.publico;
+        if (normalizados.includes('usuario')) {
+          return isAuth;
+        }
+      }
 
-                    if (publico === false) {
-                        return isAuth;
-                    }
+      return true;
+    };
 
-                    if (Array.isArray(publico)) {
-                        const normalizados = publico
-                            .map((item) => String(item || '').trim().toLowerCase().replace('á', 'a'))
-                            .filter(Boolean);
+    const criarAlert = (mensagem) => {
+      const classe = ({
+        erro: 'danger',
+        aviso: 'warning',
+        sucesso: 'success',
+        info: 'info'
+      })[mensagem.tipo || 'info'] || 'info';
 
-                        if (normalizados.includes('usuario')) {
-                            return isAuth;
-                        }
-                    }
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${classe} alert-dismissible`;
+      alert.setAttribute('data-cad-msg-alert', '1');
 
-                    if (typeof publico === 'string' && publico.trim() !== '') {
-                        const normalizados = publico
-                            .split(',')
-                            .map((item) => String(item || '').trim().toLowerCase().replace('á', 'a'))
-                            .filter(Boolean);
+      if (mensagem.titulo) {
+        const strong = document.createElement('strong');
+        strong.textContent = mensagem.titulo;
+        alert.appendChild(strong);
+        alert.appendChild(document.createElement('br'));
+      }
 
-                        if (normalizados.includes('usuario')) {
-                            return isAuth;
-                        }
-                    }
+      alert.appendChild(document.createTextNode(mensagem.conteudo || ''));
 
-                    return true;
-                };
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'close';
+      closeButton.setAttribute('aria-label', 'Fechar');
+      closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
+      closeButton.addEventListener('click', () => alert.remove());
+      alert.appendChild(closeButton);
 
-                const criarAlert = (mensagem) => {
-                    const classe = ({
-                        erro: 'danger',
-                        aviso: 'warning',
-                        sucesso: 'success',
-                        info: 'info'
-                    })[mensagem.tipo || 'info'] || 'info';
+      removeLater(alert);
+      return alert;
+    };
 
-                    const alert = document.createElement('div');
-                    alert.className = `alert alert-${classe} alert-dismissible`;
-                    alert.setAttribute('data-cad-msg-alert', '1');
+    const renderizarMensagens = (mensagens) => {
+      const visiveis = mensagens.filter((mensagem) => deveExibirMensagem(mensagem));
+      const assinatura = JSON.stringify(visiveis.map((mensagem) => [
+        mensagem.id,
+        mensagem.updated_at,
+        mensagem.ativo,
+        mensagem.titulo,
+        mensagem.conteudo,
+        mensagem.tipo,
+        mensagem.publico,
+      ]));
 
-                    if (mensagem.titulo) {
-                        const strong = document.createElement('strong');
-                        strong.textContent = mensagem.titulo;
-                        alert.appendChild(strong);
-                        alert.appendChild(document.createElement('br'));
-                    }
+      const possuiAlertsRenderizados = container.querySelector('[data-cad-msg-alert]') !== null;
 
-                    alert.appendChild(document.createTextNode(mensagem.conteudo || ''));
+      if (assinatura === lastSignature && possuiAlertsRenderizados) {
+        return;
+      }
 
-                    const closeButton = document.createElement('button');
-                    closeButton.type = 'button';
-                    closeButton.className = 'close';
-                    closeButton.setAttribute('aria-label', 'Fechar');
-                    closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
-                    closeButton.addEventListener('click', () => alert.remove());
-                    alert.appendChild(closeButton);
+      lastSignature = assinatura;
+      container.innerHTML = '';
 
-                    removeLater(alert);
-                    return alert;
-                };
+      visiveis.forEach((mensagem) => {
+        container.appendChild(criarAlert(mensagem));
+      });
+    };
 
-                const renderizarMensagens = (mensagens) => {
-                    const visiveis = mensagens.filter((mensagem) => deveExibirMensagem(mensagem));
-                    const assinatura = JSON.stringify(visiveis.map((mensagem) => [
-                        mensagem.id,
-                        mensagem.updated_at,
-                        mensagem.ativo,
-                        mensagem.titulo,
-                        mensagem.conteudo,
-                        mensagem.tipo,
-                        mensagem.publico,
-                    ]));
+    if (!endpoint) {
+      return;
+    }
 
-                    const possuiAlertsRenderizados = container.querySelector('[data-cad-msg-alert]') !== null;
+    const atualizarMensagens = () => {
+      const urlObj = new URL(endpoint, window.location.origin);
+      urlObj.searchParams.set('_t', String(Date.now()));
+      const url = urlObj.toString();
 
-                    if (assinatura === lastSignature && possuiAlertsRenderizados) {
-                        return;
-                    }
+      fetch(url, { headers: { Accept: 'application/json' } })
+        .then((response) => (response.ok ? response.json() : []))
+        .then((mensagens) => {
+          if (!Array.isArray(mensagens)) {
+            return;
+          }
 
-                    lastSignature = assinatura;
-                    container.innerHTML = '';
+          renderizarMensagens(mensagens);
+        })
+        .catch(() => {
+        });
+    };
 
-                    visiveis.forEach((mensagem) => {
-                        container.appendChild(criarAlert(mensagem));
-                    });
-                };
-
-                const existingAlerts = container.querySelectorAll('[data-cad-msg-alert]');
-                existingAlerts.forEach((alert) => removeLater(alert));
-
-                if (!endpoint) {
-                    return;
-                }
-
-                const atualizarMensagens = () => {
-                    const urlObj = new URL(endpoint, window.location.origin);
-                    urlObj.searchParams.set('_t', String(Date.now()));
-                    const url = urlObj.toString();
-
-                    fetch(url, { headers: { Accept: 'application/json' } })
-                        .then((response) => (response.ok ? response.json() : []))
-                        .then((mensagens) => {
-                            if (!Array.isArray(mensagens)) {
-                                return;
-                            }
-
-                            renderizarMensagens(mensagens);
-                        })
-                        .catch(() => {
-                        });
-                };
-
-                atualizarMensagens();
-                setInterval(atualizarMensagens, refreshMs);
-      })();
-    </script>
-@endif
+    atualizarMensagens();
+    setInterval(atualizarMensagens, refreshMs);
+  })();
+</script>

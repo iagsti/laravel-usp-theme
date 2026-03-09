@@ -68,7 +68,6 @@ O tema pode exibir mensagens vindas do sistema
 no topo das páginas.
 
 No fluxo atual do tema:
-
 - o navegador faz polling no endpoint local do tema: `/_usp-theme/cadastros-auxiliares/mensagens`;
 - o backend do tema consulta este webservice em `CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL`;
 - `CADASTROS_AUXILIARES_PASSWORD` é enviada apenas no backend (não fica exposta no browser).
@@ -89,7 +88,7 @@ Significado:
 
 - `CADASTROS_AUXILIARES_MENSAGENS_INTEGRACAO`: habilita/desabilita a integração.
 - quando a variável não existir, estiver vazia ou for `false`, a integração fica desabilitada.
-- `CADASTROS_AUXILIARES_PASSWORD`: senha opcional para proteger o endpoint de mensagens em chamadas externas.
+- `CADASTROS_AUXILIARES_PASSWORD`: senha obrigatória para proteger o endpoint de mensagens em chamadas externas.
 - em integrações com `laravel-usp-theme`, a senha é usada no backend do tema (proxy local), sem exposição no navegador.
 - `CADASTROS_AUXILIARES_MENSAGENS_ENDPOINT_URL`: endpoint remoto `GET` do cadastros-auxiliares (ex.: `https://seu-app/api/mensagens`), consumido no backend.
 - `CADASTROS_AUXILIARES_SISTEMA_NAME`: nome do sistema consumidor para aplicar o filtro por sistema (ex.: `cadastros-auxiliares`, `ponto`).

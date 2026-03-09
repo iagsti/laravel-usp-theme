@@ -4,10 +4,14 @@ namespace Uspdev\UspTheme\Services;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
+use Uspdev\CadastrosAuxiliaresClient\Contracts\MensagensClientInterface;
 
 class CadastrosAuxiliaresMensagensService
 {
+    public function __construct(private readonly MensagensClientInterface $client)
+    {
+    }
+
     public function fetch(): Collection
     {
         $enabled = filter_var(
@@ -29,55 +33,31 @@ class CadastrosAuxiliaresMensagensService
             }
         }
 
+        if ($this->shouldUseInternalRequest($endpoint)) {
+            return $this->fetchViaInternalRequest($endpoint);
+        }
+
         $limite = max(1, (int) config('laravel-usp-theme.cadastros_auxiliares_mensagens_limite', 5));
         $sistema = mb_strtolower(trim((string) config('laravel-usp-theme.cadastros_auxiliares_mensagens_sistema', '')));
         $password = trim((string) config('laravel-usp-theme.cadastros_auxiliares_password', ''));
-        $requestTimeout = 5;
 
-        try {
-            $queryString = parse_url($endpoint, PHP_URL_QUERY) ?: '';
-            parse_str($queryString, $queryParams);
-            $baseUrl = $queryString === '' ? $endpoint : str_replace('?' . $queryString, '', $endpoint);
+        // Mantem compatibilidade: tema continua lendo CADASTROS_AUXILIARES_*.
+        config()->set('cadastros-auxiliares-client.enabled', true);
+        config()->set('cadastros-auxiliares-client.mensagens.endpoint_url', $endpoint);
+        config()->set('cadastros-auxiliares-client.mensagens.password', $password);
+        config()->set('cadastros-auxiliares-client.mensagens.limite', $limite);
+        config()->set('cadastros-auxiliares-client.mensagens.sistema', $sistema);
 
-            if (!array_key_exists('limite', $queryParams)) {
-                $queryParams['limite'] = $limite;
-            }
+        $filters = [
+            'ativos' => true,
+            'limite' => $limite,
+        ];
 
-            if (!array_key_exists('sistema', $queryParams) && $sistema !== '') {
-                $queryParams['sistema'] = $sistema;
-            }
-
-            $url = $baseUrl;
-
-            if (!empty($queryParams)) {
-                $url .= '?' . http_build_query($queryParams);
-            }
-
-            if ($this->shouldUseInternalRequest($url)) {
-                return $this->fetchViaInternalRequest($url);
-            }
-
-            $headers = [
-                'X-UspTheme-Mensagens-Internal' => '1',
-            ];
-
-            if ($password !== '') {
-                $headers['X-Cadastros-Auxiliares-Password'] = $password;
-            }
-
-            $response = Http::acceptJson()
-                ->timeout($requestTimeout)
-                ->withHeaders($headers)
-                ->get($url);
-
-            if ($response->ok() && is_array($response->json())) {
-                return collect($response->json())->values();
-            }
-        } catch (\Throwable $exception) {
-            return collect();
+        if ($sistema !== '') {
+            $filters['sistema'] = $sistema;
         }
 
-        return collect();
+        return $this->client->fetch($filters)->values();
     }
 
     private function shouldUseInternalRequest(string $url): bool

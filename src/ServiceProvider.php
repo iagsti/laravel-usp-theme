@@ -7,6 +7,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Uspdev\CadastrosAuxiliaresClient\Contracts\MensagensClientInterface;
+use Uspdev\CadastrosAuxiliaresClient\Services\MensagensClient;
 use Uspdev\UspTheme\Services\CadastrosAuxiliaresMensagensService;
 
 class ServiceProvider extends BaseServiceProvider
@@ -33,22 +35,6 @@ class ServiceProvider extends BaseServiceProvider
         View::share('logout_method', config('laravel-usp-theme.logout_method'));
         View::share('login_url', config('laravel-usp-theme.login_url'));
         View::share('logout_url', config('laravel-usp-theme.logout_url'));
-        View::share('cadastrosAuxiliaresMensagensIntegracao', config('laravel-usp-theme.cadastros_auxiliares_mensagens_integracao'));
-        View::share('cadastrosAuxiliaresMensagensTimeout', config('laravel-usp-theme.cadastros_auxiliares_mensagens_timeout'));
-        View::share('cadastrosAuxiliaresMensagensEndpoint', config('laravel-usp-theme.cadastros_auxiliares_mensagens_endpoint_url'));
-        View::share('cadastrosAuxiliaresMensagensLimite', config('laravel-usp-theme.cadastros_auxiliares_mensagens_limite'));
-        View::share('cadastrosAuxiliaresMensagensSistema', config('laravel-usp-theme.cadastros_auxiliares_mensagens_sistema'));
-        View::share('cadastrosAuxiliaresMensagensRefresh', config('laravel-usp-theme.cadastros_auxiliares_mensagens_refresh'));
-        View::share(
-            'cadastrosAuxiliaresMensagens',
-            (filter_var(
-                config('laravel-usp-theme.cadastros_auxiliares_mensagens_integracao', false),
-                FILTER_VALIDATE_BOOL,
-                FILTER_NULL_ON_FAILURE
-            ) ?? false)
-                ? app(CadastrosAuxiliaresMensagensService::class)->fetch()
-                : collect()
-        );
 
         # skin na sessão com fallback para o config
         # https://stackoverflow.com/questions/34577946/how-to-retrieve-session-data-in-service-providers-in-laravel
@@ -71,6 +57,15 @@ class ServiceProvider extends BaseServiceProvider
         $sistemas = require $this->packagePath('config/laravel-usp-theme-sistemas.php');
         $config = $this->app['config']->get('laravel-usp-theme', []);
         $this->app['config']->set('laravel-usp-theme', array_merge($sistemas, $config));
+
+        // Fallback binding for environments where package:discover has not been executed yet.
+        if (
+            interface_exists(MensagensClientInterface::class)
+            && class_exists(MensagensClient::class)
+            && !$this->app->bound(MensagensClientInterface::class)
+        ) {
+            $this->app->singleton(MensagensClientInterface::class, MensagensClient::class);
+        }
 
         $this->app->singleton(CadastrosAuxiliaresMensagensService::class);
 
